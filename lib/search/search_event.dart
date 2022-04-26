@@ -34,3 +34,7 @@ class SearchAcceptedAsNthClient extends SearchEvent{
 class SearchRejected extends SearchEvent{
 
 }
+
+class SearchCanceled extends SearchEvent{
+  
+}
