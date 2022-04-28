@@ -28,19 +28,7 @@ class SearchBloc  extends Bloc <SearchEvent,SearchState>{
     
     emit(Pending());
 
-    await  Future.delayed(const Duration(seconds: 3), () {   
-        int nb = Random().nextInt(3);
-            switch(nb % 3){
-              case 0:add(SearchAcceptedAsFirstClient());break;
-              case 1:add(SearchTimedOut());break;
-              case 2:add(SearchAcceptedAsNthClient(rank: 3));break;
-            }
-
-        
-
-
-
-        });
+   
   }
 
   FutureOr<void> _onTimedOut(SearchTimedOut event, Emitter<SearchState> emit) {
@@ -55,6 +43,7 @@ class SearchBloc  extends Bloc <SearchEvent,SearchState>{
 
   FutureOr<void> _onAcceptedAsFirstClient(SearchAcceptedAsFirstClient event, Emitter<SearchState> emit) {
     emit(FirstClient());
+    
 
   }
 
