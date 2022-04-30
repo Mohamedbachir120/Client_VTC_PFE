@@ -19,13 +19,12 @@ class DriveBloc extends Bloc<DriveEvent, DriveState> {
     on<DriveEnded>(_onEnd);
 
     _driveSubscribtion = driveRepository.drive.listen((event) {
-      if (state != event) {
         if (event is OnRoad) {
           super.add(DriveStarted());
         } else if (event is Arrived) {
           super.add(DriveEnded());
         }
-      }
+      
     });
   }
 

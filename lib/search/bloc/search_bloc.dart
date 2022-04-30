@@ -21,17 +21,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchCanceled>(_onCanceled);
     _searchSubscribtion = driveRepository.search.listen((event) {
 
-      if (state != event) {
         if (event is Pending) {
           super.add(SearchStarted());
-          
+
         } else if (event is DriverFounded) {
           super.add(SearchAccepted());
         } else if (event is DriverNotFound) {
           super.add(SearchRejected());
         }
 
-      }
+      
     });
   }
 
