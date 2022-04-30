@@ -10,9 +10,10 @@ abstract class DriveState extends Equatable{
 }
 
 class DriveInitial extends DriveState{}
-class onRoad extends DriveState{}
+class OnRoad extends DriveState{}
 
 class Arrived extends DriveState{}
+
 
 
 

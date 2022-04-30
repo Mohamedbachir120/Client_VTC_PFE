@@ -12,11 +12,12 @@ class SearchIntial extends SearchState{}
 
 class Pending extends SearchState{}
 
-class FirstClient extends SearchState{}
+class DriverFounded extends SearchState{}
 
-class NthClient extends SearchState{}
 
 class DriverNotFound extends SearchState{}
+
+class SearchEnd extends SearchIntial{}
 
 
 

@@ -20,4 +20,8 @@ class DriveEnded extends DriveEvent{
 
 }
 
+class DriveCanceled extends DriveEvent{
+  
+}
+
 
