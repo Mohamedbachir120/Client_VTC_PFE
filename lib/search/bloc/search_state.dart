@@ -17,7 +17,6 @@ class DriverFounded extends SearchState{}
 
 class DriverNotFound extends SearchState{}
 
-class SearchEnd extends SearchIntial{}
 
 
 

@@ -27,7 +27,6 @@ class DriveRepository {
         case 0:
           _searchController.add(SearchAccepted());
           await Future.delayed(const Duration(seconds: 3), () {
-          _searchController.add(SearchEnded());
             launchDrive();
           });
 

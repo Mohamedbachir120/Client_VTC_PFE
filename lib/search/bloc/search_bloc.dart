@@ -20,7 +20,6 @@ class SearchBloc  extends Bloc <SearchEvent,SearchState>{
     on<SearchAccepted>(_onAccepted);
     on<SearchRejected>(_onRejected);
     on<SearchCanceled>(_onCanceled);
-    on<SearchEnded>(_onEnded);
     _searchSubscribtion = driveRepository.search.listen((event) {
          
             super.add(event);
@@ -62,9 +61,6 @@ class SearchBloc  extends Bloc <SearchEvent,SearchState>{
     emit(SearchIntial());
   }
 
-  FutureOr<void> _onEnded(SearchEnded event,Emitter<SearchState> emit){
-     emit(SearchEnd());
-
-  }
+ 
 }
 

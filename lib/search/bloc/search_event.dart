@@ -22,6 +22,3 @@ class SearchAccepted extends SearchEvent{}
 class SearchRejected extends SearchEvent{}
 
 class SearchCanceled extends SearchEvent{}
-
-class SearchEnded extends SearchEvent{
-}
