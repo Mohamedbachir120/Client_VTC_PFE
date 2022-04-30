@@ -20,19 +20,23 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
-    final DriveRepository driveRepository = DriveRepository();
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-            create: (BuildContext context) => SearchBloc(
-                searchState: SearchIntial(), driveRepository: driveRepository)),
-        BlocProvider(
-            create: (BuildContext context) => DriveBloc(
-                  driveState: DriveInitial(),
-                  driveRepository: driveRepository,
-                ))
-      ],
-      child: SearchView(),
+    return RepositoryProvider(
+      create: (context) => DriveRepository(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (BuildContext context) => SearchBloc(
+                  searchState: SearchIntial(), 
+                  driveRepository:RepositoryProvider.of<DriveRepository>(context) )),
+          BlocProvider(
+              create: (BuildContext context) => DriveBloc(
+                    driveState: DriveInitial(),
+                    driveRepository: RepositoryProvider.of<DriveRepository>(context)
+,
+                  ))
+        ],
+        child: SearchView(),
+      ),
     );
   }
 }
@@ -83,14 +87,12 @@ class _SearchContent extends State<SearchContent> {
                   ),
                   TextButton(
                       onPressed: () async {
-                        context
-                            .read<SearchBloc>()
-                            .driveRepository
-                            .launchSerch();
+                        
+                        context.read<SearchBloc>().add(SearchStarted());
                       },
                       child: Text("Confirmer"))
                 ],
-                if (context.read<SearchBloc>().state is Pending) ...[
+                if (state is Pending) ...[
                   Center(child: Text("Recherche en cours ...")),
                   TextButton(
                       onPressed: () {
@@ -98,21 +100,21 @@ class _SearchContent extends State<SearchContent> {
                       },
                       child: Text("Annuler la course"))
                 ],
-                if (context.read<SearchBloc>().state is DriverFounded) ...[
+                if (state is DriverFounded) ...[
                   BlocBuilder<DriveBloc, DriveState>(
                     builder: (context, state) {
                       return Column(
                         children: [
-                          if (context.read<DriveBloc>().state is OnRoad) ...[
+                          if (state is OnRoad) ...[
                             Center(
                                 child: Text(
                                     "Vous êtes en routes , vous arrivez dans quelques minutes à votre destination")),
                           ],
-                          if (context.read<DriveBloc>().state is Arrived) ...[
+                          if (state is Arrived) ...[
                             Center(
                                 child: Text(
                                     "Vous êtes arrivé à votre destination , Notez votre expérience 1.. 5 !"))
-                          ] else if(context.read<DriveBloc>().state is DriveInitial)...[
+                          ] else if(state is DriveInitial)...[
                             Center(
                                 child: Text(
                               ''' Driver infos ''',
@@ -139,7 +141,7 @@ class _SearchContent extends State<SearchContent> {
                     },
                   ),
                 ],
-                if (context.read<SearchBloc>().state is DriverNotFound) ...[
+                if (state is DriverNotFound) ...[
                   Center(child: Text("Désolé aucun chaffeur n'a  été trouvé ")),
                   TextButton(
                       onPressed: () {
