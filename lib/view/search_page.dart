@@ -1,117 +1,160 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:test_client_vtc/search/search_bloc.dart';
-import 'package:test_client_vtc/search/search_event.dart';
-import 'package:test_client_vtc/search/search_state.dart';
+import 'package:test_client_vtc/drive/bloc/drive_bloc.dart';
+import 'package:test_client_vtc/drive/bloc/drive_state.dart';
+import 'package:test_client_vtc/drive/repository/drive_repo.dart';
 
-class SearchPage extends StatelessWidget {
+import '../search/bloc/search_bloc.dart';
+import '../search/bloc/search_event.dart';
+import '../search/bloc/search_state.dart';
+
+class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
 
   @override
+  State<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SearchBloc(SearchIntial()),
-      child: const SearchView(),
+    return RepositoryProvider(
+      create: (context) => DriveRepository(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (BuildContext context) => SearchBloc(
+                  searchState: SearchIntial(), 
+                  driveRepository:RepositoryProvider.of<DriveRepository>(context) )),
+          BlocProvider(
+              create: (BuildContext context) => DriveBloc(
+                    driveState: DriveInitial(),
+                    driveRepository: RepositoryProvider.of<DriveRepository>(context)
+,
+                  ))
+        ],
+        child: SearchView(),
+      ),
     );
   }
 }
 
 enum DriveType { SOLO, MULTIPLE }
 
-class DynamicContent extends StatefulWidget {
-  const DynamicContent({Key? key}) : super(key: key);
+class SearchContent extends StatefulWidget {
+  const SearchContent({Key? key}) : super(key: key);
 
   @override
-  State<DynamicContent> createState() => _DynamicContent();
+  State<SearchContent> createState() => _SearchContent();
 }
 
-class _DynamicContent extends State<DynamicContent> {
+class _SearchContent extends State<SearchContent> {
   DriveType _value = DriveType.SOLO;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SearchBloc, SearchState>(
-        buildWhen: (prev, state) => prev.runtimeType != state.runtimeType,
-        builder: (context, state) {
-          return Column(
-            children: [
-              if (state is SearchIntial) ...[
-                ListTile(
-                  title: const Text("Course avec d'autres clients"),
-                  leading: Radio(
-                    value: DriveType.MULTIPLE,
-                    groupValue: _value,
-                    onChanged: (value) {
-                      setState(() {
-                        _value = DriveType.MULTIPLE;
-                      });
+    return Column(
+      children: [
+        BlocBuilder<SearchBloc, SearchState>(
+          builder: (context, state) {
+            return Column(children: [
+                if (context.read<SearchBloc>().state is SearchIntial) ...[
+                  ListTile(
+                    title: const Text("Course avec d'autres clients"),
+                    leading: Radio(
+                      value: DriveType.MULTIPLE,
+                      groupValue: _value,
+                      onChanged: (value) {
+                        setState(() {
+                          _value = DriveType.MULTIPLE;
+                        });
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Course classique'),
+                    leading: Radio(
+                      value: DriveType.SOLO,
+                      groupValue: _value,
+                      onChanged: (value) {
+                        setState(() {
+                          _value = DriveType.SOLO;
+                        });
+                      },
+                    ),
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        
+                        context.read<SearchBloc>().add(SearchStarted());
+                      },
+                      child: Text("Confirmer"))
+                ],
+                if (state is Pending) ...[
+                  Center(child: Text("Recherche en cours ...")),
+                  TextButton(
+                      onPressed: () {
+                        context.read<SearchBloc>().add(SearchCanceled());
+                      },
+                      child: Text("Annuler la course"))
+                ],
+                if (state is DriverFounded) ...[
+                  BlocBuilder<DriveBloc, DriveState>(
+                    builder: (context, state) {
+                      return Column(
+                        children: [
+                          if (state is OnRoad) ...[
+                            Center(
+                                child: Text(
+                                    "Vous êtes en routes , vous arrivez dans quelques minutes à votre destination")),
+                          ],
+                          if (state is Arrived) ...[
+                            Center(
+                                child: Text(
+                                    "Vous êtes arrivé à votre destination , Notez votre expérience 1.. 5 !"))
+                          ] else if(state is DriveInitial)...[
+                            Center(
+                                child: Text(
+                              ''' Driver infos ''',
+                              textAlign: TextAlign.center,
+                            )),
+                            Center(
+                                child: Text(
+                              ''' Le chauffeur arrivera dans quelques instants''',
+                              textAlign: TextAlign.center,
+                            )),
+                            Center(
+                              child: TextButton(
+                                child: Text("Annuler"),
+                                onPressed: () {
+                                  context
+                                      .read<SearchBloc>()
+                                      .add(SearchCanceled());
+                                },
+                              ),
+                            )
+                          ]
+                        ],
+                      );
                     },
                   ),
-                ),
-                ListTile(
-                  title: const Text('Course classique'),
-                  leading: Radio(
-                    value: DriveType.SOLO,
-                    groupValue: _value,
-                    onChanged: (value) {
-                      setState(() {
-                        _value = DriveType.SOLO;
-                      });
-                    },
-                  ),
-                ),
-                TextButton(
-                    onPressed: () {
-                      context.read<SearchBloc>().add(SearchStarted());
-                    },
-                    child: Text("Confirmer"))
-              ],
-              if (state is Pending) ...[
-                Center(child: Text("Recherche en cours ...")),
-                TextButton(
-                    onPressed: () {
-                      context.read<SearchBloc>().add(SearchCanceled());
-                    },
-                    child: Text("Annuler la course"))
-              ],
-              if (state is FirstClient) ...[
-                Center(
-                    child: Text(
-                  ''' Vous êtes le premier passager dans ce trajet , 
-             veuillez patientez  a fin de trouver d'autres passagers qui partage la même destination ''',
-                  textAlign: TextAlign.center,
-                )),
-              ],
-              if (state is NthClient) ...[
-
-                  Center(
-                    child: Text(
-                  ''' Driver infos ''',
-                  textAlign: TextAlign.center,
-                )),
-                  Center(
-                    child: Text(
-                  ''' Le chauffeur arrivera dans quelques instants''',
-                  textAlign: TextAlign.center,
-                )),
-
-              ],
-              if(state is DriverNotFound) ... [
-
-                Center(child: Text("Désolé aucun chaffeur n'a  été trouvé ")),
-                TextButton(onPressed: (){ 
-                  
-                  context.read<SearchBloc>().add(SearchCanceled());
-
-
-                }, child: Text("Réessayer"))
-
-
-
-              ]
-            ],
-          );
-        });
+                ],
+                if (state is DriverNotFound) ...[
+                  Center(child: Text("Désolé aucun chaffeur n'a  été trouvé ")),
+                  TextButton(
+                      onPressed: () {
+                        context.read<SearchBloc>().add(SearchCanceled());
+                      },
+                      child: Text("Réessayer"))
+                ],
+              
+            ]);
+          },
+        ),
+      ],
+    );
   }
 }
 
@@ -132,7 +175,7 @@ class SearchView extends StatelessWidget {
                 child: Center(child: Text("MAP")),
               ),
               Container(
-                child: Center(child: DynamicContent()),
+                child: Center(child: SearchContent()),
               ),
             ],
           ),
